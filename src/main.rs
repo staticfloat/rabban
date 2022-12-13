@@ -44,7 +44,7 @@ struct ResSnapshot {
 
 fn get_timestamp() -> f64 {
     return match SystemTime::now().duration_since(UNIX_EPOCH) {
-        Err(_) => 0,
+        Err(_) => 0.0,
         Ok(elapsed) => elapsed.as_secs_f64(),
     };
 }

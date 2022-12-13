@@ -69,7 +69,10 @@ check:
 format:
 	$(call docker_exec,rust,cargo fmt --all)
 
-.PHONY: build
+.PHONY: build test
+
+test: build
+	echo "No tests yet, maybe someday."
 
 clean:
 	rm -rf target
