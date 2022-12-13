@@ -65,7 +65,11 @@ jobs:
         run: |
           cd target
           for target in *-*; do
-            mv ${target}/release/rabban ../rabban-${target}
+            EXE=""
+            if [[ "${target}" == *-windows-* ]]; then
+              EXE=".exe"
+            fi
+            mv ${target}/release/rabban${EXE} ../rabban-${target}${EXE}
           done
           
       - name: Publish
