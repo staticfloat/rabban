@@ -1,0 +1,77 @@
+# This file gratefully stolen from https://github.com/FedericoPonzi/rust-ci/
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*.*.*'
+
+env:
+  USE_DOCKER: true
+
+jobs:
+  style:
+    name: Check Style
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt
+          profile: minimal
+          override: true
+
+      - name: cargo fmt -- --check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+
+  test:
+    name: Test
+    needs: [style]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Test
+        shell: bash
+        run: "make test"
+
+  create-release:
+    name: Deploy
+    needs: [test]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Build for all targets
+        shell: bash
+        run: "make multibuild -j$(nproc)"
+
+      - name: Package
+        shell: bash
+        run: |
+          cd target
+          for target in *-*; do
+            mv ${target}/release/rabban ../rabban-${target}
+          done
+          
+      - name: Publish
+        uses: softprops/action-gh-release@v1
+        # TODO: if any of the build step fails, the release should be deleted.
+        with:
+            files: 'rabban-*'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

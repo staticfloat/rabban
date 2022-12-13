@@ -1,0 +1,4 @@
+/target
+
+# Ignore random `.csv` files that users will likely make in this directory.
+*.csv
